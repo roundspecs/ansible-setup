@@ -1,0 +1,94 @@
+- name: Ubuntu i3 Setup
+  hosts: localhost
+  become: true
+
+  vars:
+    dotfiles_repo: "git@github.com:roundspecs/dotfiles.git"
+    dotfiles_dir: "{{ lookup('env', 'HOME') }}/dotfiles"
+
+  tasks:
+    - name: Update apt
+      apt:
+        update_cache: yes
+
+    - name: Install apt packages
+      apt:
+        name:
+          - i3
+          - vim
+          - git
+          - curl
+          - stow
+          - brightnessctl
+          - xfce4-settings
+          - feh
+          - fonts-font-awesome
+        state: present
+
+    - name: Clone dotfiles repository
+      become: false
+      git:
+        repo: "{{ dotfiles_repo }}"
+        dest: "{{ dotfiles_dir }}"
+        version: main
+        force: yes
+
+    - name: Stow dotfiles
+      command: stow .
+      args:
+        chdir: "{{ dotfiles_dir }}"
+
+    - name: Check if Brave is installed
+      stat:
+        path: /usr/bin/brave-browser
+      register: brave_installed
+
+    - name: Install Brave browser if not already installed
+      become: true
+      shell: |
+        curl -fsS https://dl.brave.com/install.sh | sh
+      args:
+        executable: /bin/bash
+      when: brave_installed.stat.exists == false
+
+    - name: Add Microsoft GPG key
+      become: true
+      get_url:
+        url: https://packages.microsoft.com/keys/microsoft.asc
+        dest: /etc/apt/trusted.gpg.d/microsoft.asc
+
+
+    - name: Add VS Code repository
+      become: true
+      apt_repository:
+        repo: deb [arch=amd64] https://packages.microsoft.com/repos/vscode stable main
+        state: present
+        filename: vscode
+
+    - name: Update apt after adding VS Code repo
+      become: true
+      apt:
+        update_cache: yes
+
+    - name: Install VS Code
+      become: true
+      apt:
+        name: code
+        state: present
+
+    - name: Check if Zoom is installed
+      command: zoom --version
+      register: zoom_check
+      ignore_errors: yes
+      changed_when: false
+
+    - name: Download Zoom if not installed
+      get_url:
+        url: https://zoom.us/client/latest/zoom_amd64.deb
+        dest: /tmp/zoom_amd64.deb
+      when: zoom_check.rc != 0
+
+    - name: Install Zoom
+      apt:
+        deb: /tmp/zoom_amd64.deb
+      when: zoom_check.rc != 0
