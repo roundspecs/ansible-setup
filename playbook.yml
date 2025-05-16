@@ -23,6 +23,7 @@
           - xfce4-settings
           - feh
           - fonts-font-awesome
+          - rofi
         state: present
 
     - name: Clone dotfiles repository
@@ -57,7 +58,6 @@
         url: https://packages.microsoft.com/keys/microsoft.asc
         dest: /etc/apt/trusted.gpg.d/microsoft.asc
 
-
     - name: Add VS Code repository
       become: true
       apt_repository:
@@ -77,9 +77,9 @@
         state: present
 
     - name: Check if Zoom is installed
-      command: zoom --version
+      command: dpkg -s zoom
       register: zoom_check
-      ignore_errors: yes
+      ignore_errors: true
       changed_when: false
 
     - name: Download Zoom if not installed
@@ -92,3 +92,15 @@
       apt:
         deb: /tmp/zoom_amd64.deb
       when: zoom_check.rc != 0
+
+    - name: Install Flatpak
+      apt:
+        name: flatpak
+        state: present
+
+    - name: Add Flathub (if not added)
+      shell: flatpak remote-add --if-not-exists flathub https://flathub.org/repo/flathub.flatpakrepo
+
+    - name: Install OBS Studio via Flatpak
+      shell: flatpak install -y flathub com.obsproject.Studio
+
