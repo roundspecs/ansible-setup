@@ -24,6 +24,9 @@
           - feh
           - fonts-font-awesome
           - rofi
+          - pulseaudio-utils
+          - flameshot
+          - redshift
         state: present
 
     - name: Clone dotfiles repository
