@@ -28,6 +28,7 @@
           - pulseaudio-utils
           - flameshot
           - redshift
+          - kitty
         state: present
 
     - name: Clone dotfiles repository
