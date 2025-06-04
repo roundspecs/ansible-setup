@@ -14,7 +14,6 @@
     - name: Install apt packages
       apt:
         name:
-          - picom
           - i3
           - vim
           - git
@@ -24,11 +23,10 @@
           - xfce4-settings
           - feh
           - fonts-font-awesome
-          - rofi
+          - rofi                      # Because I couldn't find flatpak apps with dmenu
           - pulseaudio-utils
           - flameshot
           - redshift
-          - kitty
         state: present
 
     - name: Clone dotfiles repository
