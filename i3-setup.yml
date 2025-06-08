@@ -27,6 +27,7 @@
           - pulseaudio-utils
           - flameshot
           - redshift
+          - ranger
         state: present
 
     - name: Clone dotfiles repository
@@ -107,3 +108,5 @@
     - name: Install OBS Studio via Flatpak
       shell: flatpak install -y flathub com.obsproject.Studio
 
+    - name: Install Anki via Flatpak
+      shell: flatpak install -y flathub net.ankiweb.Anki
