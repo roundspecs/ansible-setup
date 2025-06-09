@@ -28,6 +28,7 @@
           - flameshot
           - redshift
           - ranger
+          - htop
         state: present
 
     - name: Clone dotfiles repository
@@ -110,3 +111,36 @@
 
     - name: Install Anki via Flatpak
       shell: flatpak install -y flathub net.ankiweb.Anki
+
+    - name: Ensure font directory exists (user)
+      become: false
+      file:
+        path: "{{ lookup('env', 'HOME') }}/.local/share/fonts"
+        state: directory
+        mode: '0755'
+
+    - name: Check if font zip already exists
+      stat:
+        path: /tmp/JetBrainsMono.zip
+      register: font_zip
+
+    - name: Download JetBrainsMono Nerd Font (only if not already downloaded)
+      become: false
+      get_url:
+        url: "https://github.com/ryanoasis/nerd-fonts/releases/latest/download/JetBrainsMono.zip"
+        dest: "/tmp/JetBrainsMono.zip"
+        mode: '0644'
+      when: not font_zip.stat.exists
+
+    - name: Unzip font to fonts directory (only if not already extracted)
+      become: false
+      unarchive:
+        src: "/tmp/JetBrainsMono.zip"
+        dest: "{{ lookup('env', 'HOME') }}/.local/share/fonts"
+        remote_src: yes
+      args:
+        creates: "{{ lookup('env', 'HOME') }}/.local/share/fonts/JetBrainsMonoNerdFont-Regular.ttf"
+
+    - name: Refresh font cache
+      become: false
+      shell: fc-cache -fv
